@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PM日次レポート 画面モック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4f7;
+    --surface:#ffffff;
+    --surface-2:#eceef3;
+    --border:#dde1e8;
+    --text:#171a21;
+    --text-muted:#666d7a;
+    --text-faint:#9096a3;
+    --accent:#2f5f8a;
+    --accent-strong:#1d3f5c;
+    --accent-soft:#e4ecf3;
+    --success:#1c7a54;
+    --success-soft:#e2f4ec;
+    --danger:#b03a2e;
+    --danger-soft:#fbe6e3;
+    --warning:#96660a;
+    --warning-soft:#faf0da;
+    --shadow: 0 1px 2px rgba(23,26,33,.06), 0 8px 20px -12px rgba(23,26,33,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14161a;
+      --surface:#1b1e24;
+      --surface-2:#22262e;
+      --border:#31353f;
+      --text:#e9eaee;
+      --text-muted:#9aa1ac;
+      --text-faint:#6d7482;
+      --accent:#6fa2cc;
+      --accent-strong:#9cc3e5;
+      --accent-soft:#213445;
+      --success:#4fbd8c;
+      --success-soft:#163229;
+      --danger:#e08276;
+      --danger-soft:#3a1f1c;
+      --warning:#dcab4a;
+      --warning-soft:#3a2f14;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    font-size:14px;
+    padding-inline:16px;
+  }
+  img{max-width:100%;}
+  [hidden]{display:none !important;}
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric: tabular-nums; }
+  a{color:var(--accent);}
+  h1,h2,h3{ text-wrap:balance; margin:0; }
+  button{ font-family:inherit; }
+
+  .shell{ max-width:1080px; margin:0 auto; padding-block:20px 48px; }
+
+  .mock-note{
+    background:var(--warning-soft); color:var(--warning);
+    border:1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+    border-radius:10px; padding:10px 14px; font-size:12.5px; font-weight:600; margin-bottom:16px;
+  }
+
+  .topbar{
+    position:sticky; top:0;
+    z-index:10;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand .mark{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:8px;
+    background:var(--accent); color:#fff; font-weight:700; font-size:13px;
+    font-family:"IBM Plex Mono",monospace;
+  }
+  .brand h1{ font-size:16px; font-weight:700; letter-spacing:.01em; }
+  .brand .sub{ font-size:11.5px; color:var(--text-faint); }
+  .tabs{ display:flex; gap:4px; background:var(--surface-2); padding:4px; border-radius:10px; }
+  .tab{
+    border:none; background:transparent; color:var(--text-muted);
+    padding:7px 14px; border-radius:7px; font-size:13px; font-weight:500;
+    cursor:pointer;
+  }
+  .tab[aria-current="true"]{ background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .whoami{ font-size:12px; color:var(--text-faint); }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .panel + .panel{ margin-top:16px; }
+  .panel-title{ font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+
+  .actions{ display:flex; gap:14px; flex-wrap:wrap; }
+  .action-card{
+    flex:1 1 260px; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:11px; padding:13px 15px;
+  }
+  .action-card h3{ font-size:12.5px; font-weight:700; color:var(--text-muted); margin-bottom:9px; }
+  .field-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .field-row label{ font-size:12px; color:var(--text-faint); }
+  input[type="date"]{
+    font-family:inherit; font-size:13px; color:var(--text); background:var(--surface);
+    border:1px solid var(--border); border-radius:7px; padding:6px 8px;
+  }
+  .btn{
+    border:none; border-radius:8px; padding:7px 15px; font-size:13px; font-weight:600;
+    cursor:pointer; background:var(--accent); color:#fff;
+  }
+  .btn:hover{ background:var(--accent-strong); }
+  .btn.ghost{ background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  .btn.ghost:hover{ background:var(--accent-soft); }
+  .hint{ font-size:11px; color:var(--text-faint); margin-top:6px; }
+
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{
+    text-align:left; font-size:11.5px; color:var(--text-faint); font-weight:700;
+    text-transform:uppercase; letter-spacing:.04em;
+    border-bottom:1px solid var(--border); padding:9px 10px; white-space:nowrap;
+  }
+  tbody td{ padding:11px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--surface-2); }
+  td.num, th.num{ text-align:right; }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+    font-size:11.5px; font-weight:700; white-space:nowrap;
+  }
+  .pill.success{ background:var(--success-soft); color:var(--success); }
+  .pill.danger{ background:var(--danger-soft); color:var(--danger); }
+  .pill.neutral{ background:var(--surface-2); color:var(--text-muted); border:1px solid var(--border); }
+  .pill.warning{ background:var(--warning-soft); color:var(--warning); }
+  .pill .dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .link-btn{ background:none; border:none; padding:0; color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; }
+  .link-btn + .link-btn{ margin-left:10px; }
+
+  .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--text-muted); background:none; border:none; cursor:pointer; padding:0; margin-bottom:14px; }
+  .back-link:hover{ color:var(--accent); }
+
+  .detail-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+  .detail-head h2{ font-size:20px; font-weight:900; }
+  .detail-head .meta{ font-size:12px; color:var(--text-faint); margin-top:4px; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:700px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+  .stat-tile{ background:var(--surface-2); border:1px solid var(--border); border-radius:11px; padding:13px 14px; }
+  .stat-tile .label{ font-size:11.5px; color:var(--text-faint); font-weight:600; }
+  .stat-tile .value{ font-size:22px; font-weight:700; margin-top:4px; font-family:"IBM Plex Mono",monospace; }
+  .stat-tile .value small{ font-size:13px; color:var(--text-muted); font-weight:500; margin-left:4px; }
+  .stat-tile.warn .value{ color:var(--warning); }
+
+  .change-tag{ display:inline-block; font-size:12px; padding:1px 0; }
+  .arrow{ color:var(--text-faint); margin:0 5px; }
+
+  .spent-bars{ display:flex; flex-direction:column; gap:9px; }
+  .spent-row{ display:grid; grid-template-columns:90px 1fr 56px; align-items:center; gap:10px; font-size:13px; }
+  .spent-row .bar{ height:9px; border-radius:5px; background:var(--surface-2); overflow:hidden; }
+  .spent-row .bar span{ display:block; height:100%; background:var(--accent); border-radius:5px; }
+  .spent-row .hours{ text-align:right; }
+
+  .subhead{ font-size:11.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; margin:16px 0 8px; }
+
+  .error-block{ background:var(--danger-soft); border:1px solid color-mix(in srgb, var(--danger) 35%, transparent); color:var(--danger); border-radius:10px; padding:16px 18px; font-size:13.5px; font-weight:600; }
+
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translate(-50%,12px);
+    background:var(--accent-strong); color:#fff; font-size:13px; font-weight:600;
+    padding:10px 18px; border-radius:9px; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
+    z-index:50; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  @media (max-width:560px){
+    .topbar{ flex-direction:column; align-items:stretch; }
+    .stat-grid{ grid-template-columns:1fr 1fr; }
+    thead{ display:none; }
+    table, tbody, tr, td{ display:block; width:100%; }
+    tbody tr{ border-bottom:1px solid var(--border); padding:8px 0; }
+    tbody td{ border-bottom:none; padding:3px 0; }
+    td::before{ content: attr(data-label); display:block; font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="mock-note">画面モック（`docs/design/screen-spec.md` に対応）。データはすべてサンプルで、ボタン操作は動作を模しているだけです。</div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">PM</span>
+      <div>
+        <h1>Redmine PM日次レポート</h1>
+        <div class="sub">サンプルプロジェクト &middot; トラッカー: タスク・バグ</div>
+      </div>
+    </div>
+    <nav class="tabs" id="mainTabs">
+      <button class="tab" data-tab="list" aria-current="true">レポート一覧</button>
+      <button class="tab" data-tab="history" aria-current="false">実行履歴</button>
+    </nav>
+    <div class="whoami">ログイン中: <span class="mono">DOMAIN\sato</span></div>
+  </header>
+
+  <!-- ============ レポート一覧 ============ -->
+  <section class="view" id="view-list">
+    <div class="panel">
+      <div class="actions">
+        <div class="action-card">
+          <h3>手動再生成</h3>
+          <div class="field-row">
+            <label for="regenDate">対象日</label>
+            <input type="date" id="regenDate" value="2026-09-13">
+            <button class="btn" id="regenBtn">再生成</button>
+          </div>
+          <div class="hint">欠測・生成失敗のリカバリ用。保持期間より前の日付も指定できます。</div>
+        </div>
+        <div class="action-card">
+          <h3>期間指定エクスポート</h3>
+          <div class="field-row">
+            <label for="rangeFrom">開始</label>
+            <input type="date" id="rangeFrom" value="2026-09-08">
+            <label for="rangeTo">終了</label>
+            <input type="date" id="rangeTo" value="2026-09-15">
+            <button class="btn" id="rangeBtn">エクスポート</button>
+          </div>
+          <div class="hint">最大31日分をまとめて1つのMarkdownファイルに出力します。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">レポート一覧（対象日の新しい順）</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>対象日</th><th>ステータス</th>
+              <th class="num">新規</th><th class="num">更新</th><th class="num">作業時間</th><th class="num">遅延</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="reportListBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ レポート詳細 ============ -->
+  <section class="view" id="view-detail" hidden>
+    <button class="back-link" id="backToList">← レポート一覧に戻る</button>
+
+    <div class="panel">
+      <div class="detail-head">
+        <div>
+          <h2 id="detailDateTitle">2026年09月15日 のレポート</h2>
+          <div class="meta" id="detailMeta">生成: 2026-09-16 06:00:02 &middot; プロジェクト: サンプルプロジェクト（サブプロジェクト含む）</div>
+        </div>
+        <button class="btn ghost" id="exportOneBtn">Markdownエクスポート</button>
+      </div>
+
+      <div id="detailSuccess">
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="subhead">新規登録チケット</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>起票者</th><th>トラッカー</th><th>優先度</th><th>担当</th><th>期日</th></tr></thead>
+          <tbody id="newIssuesBody"></tbody></table>
+        </div>
+
+        <div class="subhead">更新チケット（ステータス・担当者の変更）</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>変更内容</th></tr></thead>
+          <tbody id="updatedIssuesBody"></tbody></table>
+        </div>
+
+        <div class="subhead">作業時間集計（入力者別）</div>
+        <div class="spent-bars" id="spentBars"></div>
+
+        <div class="subhead">遅延チケット（遅延時間の降順）</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>担当</th><th>期日</th><th class="num">超過日数</th><th class="num">予定工数</th><th class="num">進捗</th><th class="num">遅延時間</th></tr></thead>
+          <tbody id="delayedBody"></tbody></table>
+        </div>
+        <div id="delayedUncalcWrap">
+          <div class="subhead">計算不可（工数未設定）</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>#</th><th>件名</th><th>担当</th><th>期日</th><th class="num">超過日数</th></tr></thead>
+            <tbody id="delayedUncalcBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div id="detailFailed" hidden>
+        <div class="error-block">レポートの生成に失敗しました：<span id="failMessage"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 実行履歴 ============ -->
+  <section class="view" id="view-history" hidden>
+    <div class="panel">
+      <div class="panel-title">バッチ実行履歴（実行日時の新しい順）</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>実行日時</th><th>対象日</th><th>トリガー</th><th>実行者</th><th>結果</th><th>エラー内容</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var reports = {
+    "2026-09-15": {
+      status:"success", generatedAt:"2026-09-16 06:00:02",
+      summary:{ n:5, u:8, spent:32.5, delayed:3, uncalc:1 },
+      newIssues:[
+        ["2143","会員登録画面のレスポンシブ対応","田中","タスク","通常","鈴木","2026-09-22"],
+        ["2144","検索結果のソート順が崩れる","佐藤","バグ","高め","未アサイン","2026-09-18"],
+        ["2145","決済APIタイムアウトの調査","鈴木","バグ","急いで","高橋","2026-09-16"],
+        ["2146","管理画面にCSVエクスポート機能を追加","田中","タスク","通常","佐藤","2026-09-25"],
+        ["2147","通知メール文言の修正","高橋","タスク","低め","鈴木","2026-09-19"]
+      ],
+      updatedIssues:[
+        ["2130","在庫連携バッチのエラー修正",[["ステータス","進行中","完了"]]],
+        ["2118","ログイン画面デザイン刷新",[["担当者","田中","佐藤"]]],
+        ["2125","CSVインポートの文字化け対応",[["ステータス","新規","進行中"]]],
+        ["2098","検索パフォーマンス改善",[["ステータス","進行中","確認中"]]],
+        ["2140","API仕様書の更新",[["担当者","未アサイン","高橋"]]],
+        ["2081","バッチ処理の二重実行防止",[["ステータス","確認中","完了"]]],
+        ["2062","トップページのバナー差し替え",[["ステータス","新規","進行中"]]],
+        ["2055","権限設定画面の項目追加",[["ステータス","進行中","確認中"],["担当者","佐藤","田中"]]]
+      ],
+      spent:[["鈴木",9.5],["佐藤",8.0],["高橋",7.5],["田中",7.5]],
+      delayed:[
+        ["2050","旧管理画面の廃止対応","高橋","2026-09-05",10,20.0,30,14.0],
+        ["2071","顧客データ移行スクリプト","鈴木","2026-09-08",7,16.0,50,8.0]
+      ],
+      uncalcList:[
+        ["2090","旧システムのログ調査","佐藤","2026-09-10",5]
+      ]
+    },
+    "2026-09-14": { status:"failed", generatedAt:"2026-09-15 06:00:04", error:"Redmineへの接続に失敗しました" },
+    "2026-09-11": {
+      status:"success", generatedAt:"2026-09-12 06:00:03",
+      summary:{ n:2, u:3, spent:18.0, delayed:1, uncalc:0 },
+      newIssues:[
+        ["2110","週次バックアップの通知メール","佐藤","タスク","通常","鈴木","2026-09-18"],
+        ["2111","画像アップロード時のメモリリーク","高橋","バグ","高め","高橋","2026-09-15"]
+      ],
+      updatedIssues:[
+        ["2095","注文一覧の絞り込み機能",[["ステータス","進行中","確認中"]]],
+        ["2072","パスワードリセットメール文言",[["ステータス","確認中","完了"]]],
+        ["2060","会員ランク自動更新バッチ",[["担当者","鈴木","田中"]]]
+      ],
+      spent:[["田中",6.0],["鈴木",5.5],["佐藤",4.5],["高橋",2.0]],
+      delayed:[
+        ["2040","旧APIエンドポイントの撤去","田中","2026-09-04",7,12.0,25,9.0]
+      ],
+      uncalcList:[]
+    },
+    "2026-09-10": {
+      status:"success", generatedAt:"2026-09-11 06:00:03",
+      summary:{ n:4, u:6, spent:27.5, delayed:2, uncalc:1 },
+      newIssues:[
+        ["2101","会員退会フローの見直し","田中","タスク","通常","佐藤","2026-09-24"],
+        ["2102","注文確認メールのレイアウト崩れ","佐藤","バグ","高め","鈴木","2026-09-17"],
+        ["2103","管理画面の権限マトリクス整理","鈴木","タスク","通常","未アサイン","2026-09-28"],
+        ["2104","検索インデックス再構築の自動化","高橋","タスク","通常","高橋","2026-09-20"]
+      ],
+      updatedIssues:[
+        ["2085","クーポン適用ロジック修正",[["ステータス","進行中","完了"]]],
+        ["2077","会員情報CSV出力の文字コード",[["ステータス","新規","進行中"]]],
+        ["2066","トップページ表示速度改善",[["担当者","高橋","鈴木"]]],
+        ["2059","注文キャンセル時の在庫戻し",[["ステータス","確認中","完了"]]],
+        ["2044","会員登録バリデーション強化",[["ステータス","進行中","確認中"]]],
+        ["2033","管理画面ログイン試行回数制限",[["ステータス","新規","進行中"]]]
+      ],
+      spent:[["鈴木",8.0],["高橋",7.5],["佐藤",6.5],["田中",5.5]],
+      delayed:[
+        ["2020","旧決済モジュールの廃止","鈴木","2026-09-01",9,14.0,40,8.4]
+      ],
+      uncalcList:[
+        ["2015","会員データ棚卸し","田中","2026-09-03",7]
+      ]
+    },
+    "2026-09-09": {
+      status:"success", generatedAt:"2026-09-10 06:00:03",
+      summary:{ n:1, u:4, spent:21.0, delayed:2, uncalc:0 },
+      newIssues:[
+        ["2099","注文履歴ページネーション改善","佐藤","タスク","通常","田中","2026-09-16"]
+      ],
+      updatedIssues:[
+        ["2070","会員ステータス自動遷移バッチ",[["ステータス","進行中","確認中"]]],
+        ["2058","検索キーワードのサジェスト機能",[["担当者","佐藤","高橋"]]],
+        ["2047","注文詳細の表示崩れ修正",[["ステータス","確認中","完了"]]],
+        ["2036","管理画面のダークモード対応",[["ステータス","新規","進行中"]]]
+      ],
+      spent:[["高橋",7.0],["田中",6.0],["鈴木",5.0],["佐藤",3.0]],
+      delayed:[
+        ["2010","旧問い合わせフォームの撤去","佐藤","2026-08-30",10,8.0,20,6.4],
+        ["2005","会員ランク判定バッチの高速化","高橋","2026-09-02",7,10.0,10,9.0]
+      ],
+      uncalcList:[]
+    },
+    "2026-09-08": {
+      status:"success", generatedAt:"2026-09-09 06:00:02",
+      summary:{ n:3, u:5, spent:24.0, delayed:1, uncalc:0 },
+      newIssues:[
+        ["2092","注文管理画面の一括操作機能","田中","タスク","通常","高橋","2026-09-19"],
+        ["2093","会員登録時のメール重複チェック","鈴木","バグ","高め","佐藤","2026-09-12"],
+        ["2094","管理画面メニューの並び替え","佐藤","タスク","低め","田中","2026-09-26"]
+      ],
+      updatedIssues:[
+        ["2065","注文ステータス自動更新",[["ステータス","進行中","完了"]]],
+        ["2054","会員検索の絞り込み条件追加",[["ステータス","新規","進行中"]]],
+        ["2048","クーポン発行画面の入力チェック",[["担当者","田中","鈴木"]]],
+        ["2039","管理画面ログの保存期間設定",[["ステータス","確認中","完了"]]],
+        ["2028","会員退会理由の集計機能",[["ステータス","進行中","確認中"]]]
+      ],
+      spent:[["佐藤",8.5],["鈴木",7.0],["高橋",5.5],["田中",3.0]],
+      delayed:[
+        ["2000","旧集計バッチの停止","高橋","2026-08-28",11,9.0,55,4.05]
+      ],
+      uncalcList:[]
+    }
+  };
+  var reportOrder = ["2026-09-15","2026-09-14","2026-09-11","2026-09-10","2026-09-09","2026-09-08"];
+
+  var history = [
+    ["2026-09-16 06:00:02","2026-09-15","scheduled","","success",""],
+    ["2026-09-15 09:40:12","2026-09-14","manual","DOMAIN\\sato","failed","Redmineへの接続に失敗しました"],
+    ["2026-09-15 06:00:04","2026-09-14","scheduled","","failed","Redmineへの接続に失敗しました"],
+    ["2026-09-12 06:00:03","2026-09-11","scheduled","","success",""],
+    ["2026-09-11 06:00:03","2026-09-10","scheduled","","success",""],
+    ["2026-09-10 06:00:03","2026-09-09","scheduled","","success",""],
+    ["2026-09-09 06:00:02","2026-09-08","scheduled","","success",""]
+  ];
+
+  function fmtDateJP(iso){
+    var p = iso.split("-");
+    return p[0]+"年"+p[1]+"月"+p[2]+"日";
+  }
+  function fmtDateShort(iso){
+    var p = iso.split("-"); return p[1]+"/"+p[2];
+  }
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+  function statusPill(status){
+    if(status === "success") return '<span class="pill success"><span class="dot"></span>成功</span>';
+    return '<span class="pill danger"><span class="dot"></span>失敗</span>';
+  }
+
+  function renderList(){
+    var body = document.getElementById("reportListBody");
+    body.innerHTML = reportOrder.map(function(date){
+      var r = reports[date];
+      if(r.status === "success"){
+        return '<tr>'
+          + '<td data-label="対象日" class="mono">'+date+'</td>'
+          + '<td data-label="ステータス">'+statusPill(r.status)+'</td>'
+          + '<td data-label="新規" class="num mono">'+r.summary.n+'</td>'
+          + '<td data-label="更新" class="num mono">'+r.summary.u+'</td>'
+          + '<td data-label="作業時間" class="num mono">'+r.summary.spent.toFixed(1)+'h</td>'
+          + '<td data-label="遅延" class="num mono">'+r.summary.delayed+'</td>'
+          + '<td data-label="操作"><button class="link-btn" data-detail="'+date+'">詳細</button><button class="link-btn" data-export="'+date+'">MDエクスポート</button></td>'
+          + '</tr>';
+      }
+      return '<tr>'
+        + '<td data-label="対象日" class="mono">'+date+'</td>'
+        + '<td data-label="ステータス">'+statusPill(r.status)+'</td>'
+        + '<td data-label="新規" class="num">-</td><td data-label="更新" class="num">-</td>'
+        + '<td data-label="作業時間" class="num">-</td><td data-label="遅延" class="num">-</td>'
+        + '<td data-label="操作"><button class="link-btn" data-detail="'+date+'">詳細</button></td>'
+        + '</tr>';
+    }).join("");
+
+    body.querySelectorAll("[data-detail]").forEach(function(btn){
+      btn.addEventListener("click", function(){ showDetail(btn.getAttribute("data-detail")); });
+    });
+    body.querySelectorAll("[data-export]").forEach(function(btn){
+      btn.addEventListener("click", function(e){ e.stopPropagation(); toast(btn.getAttribute("data-export")+" のレポートをダウンロードしました（モック）"); });
+    });
+  }
+
+  function renderHistory(){
+    var body = document.getElementById("historyBody");
+    body.innerHTML = history.map(function(h){
+      var trigger = h[2] === "scheduled"
+        ? '<span class="pill neutral">自動</span>'
+        : '<span class="pill warning">手動</span>';
+      return '<tr>'
+        + '<td data-label="実行日時" class="mono">'+h[0]+'</td>'
+        + '<td data-label="対象日" class="mono">'+h[1]+'</td>'
+        + '<td data-label="トリガー">'+trigger+'</td>'
+        + '<td data-label="実行者" class="mono">'+(h[3]||'&mdash;')+'</td>'
+        + '<td data-label="結果">'+statusPill(h[4])+'</td>'
+        + '<td data-label="エラー内容">'+(h[5]?esc(h[5]):'&mdash;')+'</td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  function showDetail(date){
+    var r = reports[date];
+    document.getElementById("detailDateTitle").textContent = fmtDateJP(date)+" のレポート";
+    document.getElementById("detailMeta").textContent = "生成: "+r.generatedAt+" ・ プロジェクト: サンプルプロジェクト（サブプロジェクト含む）";
+    var exportBtn = document.getElementById("exportOneBtn");
+
+    if(r.status === "failed"){
+      document.getElementById("detailSuccess").hidden = true;
+      document.getElementById("detailFailed").hidden = false;
+      document.getElementById("failMessage").textContent = r.error;
+      exportBtn.disabled = true;
+      exportBtn.style.opacity = .5;
+      exportBtn.style.cursor = "not-allowed";
+    } else {
+      document.getElementById("detailSuccess").hidden = false;
+      document.getElementById("detailFailed").hidden = true;
+      exportBtn.disabled = false;
+      exportBtn.style.opacity = 1;
+      exportBtn.style.cursor = "pointer";
+
+      document.getElementById("statGrid").innerHTML =
+        '<div class="stat-tile"><div class="label">新規登録</div><div class="value mono">'+r.summary.n+'<small>件</small></div></div>'
+        + '<div class="stat-tile"><div class="label">更新</div><div class="value mono">'+r.summary.u+'<small>件</small></div></div>'
+        + '<div class="stat-tile"><div class="label">作業時間合計</div><div class="value mono">'+r.summary.spent.toFixed(1)+'<small>h</small></div></div>'
+        + '<div class="stat-tile warn"><div class="label">遅延（計算不可含む）</div><div class="value mono">'+r.summary.delayed+'<small>件（内'+r.summary.uncalc+'件 計算不可）</small></div></div>';
+
+      document.getElementById("newIssuesBody").innerHTML = r.newIssues.map(function(i){
+        return '<tr><td data-label="#" class="mono">#'+i[0]+'</td><td data-label="件名">'+esc(i[1])+'</td>'
+          + '<td data-label="起票者">'+esc(i[2])+'</td><td data-label="トラッカー">'+esc(i[3])+'</td>'
+          + '<td data-label="優先度">'+esc(i[4])+'</td><td data-label="担当">'+esc(i[5])+'</td>'
+          + '<td data-label="期日" class="mono">'+fmtDateShort(i[6])+'</td></tr>';
+      }).join("");
+
+      document.getElementById("updatedIssuesBody").innerHTML = r.updatedIssues.map(function(i){
+        var changes = i[2].map(function(c){
+          return '<span class="change-tag">'+esc(c[0])+': '+esc(c[1])+'<span class="arrow">→</span>'+esc(c[2])+'</span>';
+        }).join("、 ");
+        return '<tr><td data-label="#" class="mono">#'+i[0]+'</td><td data-label="件名">'+esc(i[1])+'</td><td data-label="変更内容">'+changes+'</td></tr>';
+      }).join("");
+
+      var maxSpent = Math.max.apply(null, r.spent.map(function(s){ return s[1]; }));
+      document.getElementById("spentBars").innerHTML = r.spent.map(function(s){
+        var pct = Math.round((s[1]/maxSpent)*100);
+        return '<div class="spent-row"><div>'+esc(s[0])+'</div><div class="bar"><span style="width:'+pct+'%"></span></div><div class="hours mono">'+s[1].toFixed(1)+'h</div></div>';
+      }).join("");
+
+      document.getElementById("delayedBody").innerHTML = r.delayed.map(function(d){
+        return '<tr><td data-label="#" class="mono">#'+d[0]+'</td><td data-label="件名">'+esc(d[1])+'</td>'
+          + '<td data-label="担当">'+esc(d[2])+'</td><td data-label="期日" class="mono">'+fmtDateShort(d[3])+'</td>'
+          + '<td data-label="超過日数" class="num mono">'+d[4]+'日</td>'
+          + '<td data-label="予定工数" class="num mono">'+d[5].toFixed(1)+'h</td>'
+          + '<td data-label="進捗" class="num mono">'+d[6]+'%</td>'
+          + '<td data-label="遅延時間" class="num mono" style="font-weight:700;">'+d[7].toFixed(1)+'h</td></tr>';
+      }).join("") || '<tr><td colspan="8" style="color:var(--text-faint);">該当なし</td></tr>';
+
+      var uncalcWrap = document.getElementById("delayedUncalcWrap");
+      if(r.uncalcList.length === 0){
+        uncalcWrap.hidden = true;
+      } else {
+        uncalcWrap.hidden = false;
+        document.getElementById("delayedUncalcBody").innerHTML = r.uncalcList.map(function(d){
+          return '<tr><td data-label="#" class="mono">#'+d[0]+'</td><td data-label="件名">'+esc(d[1])+'</td>'
+            + '<td data-label="担当">'+esc(d[2])+'</td><td data-label="期日" class="mono">'+fmtDateShort(d[3])+'</td>'
+            + '<td data-label="超過日数" class="num mono">'+d[4]+'日</td></tr>';
+        }).join("");
+      }
+    }
+
+    switchView("detail");
+  }
+
+  function switchView(name){
+    ["list","detail","history"].forEach(function(v){
+      document.getElementById("view-"+v).hidden = (v !== name);
+    });
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.setAttribute("aria-current", t.getAttribute("data-tab") === name ? "true" : "false");
+    });
+  }
+
+  var toastTimer;
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+  }
+
+  document.getElementById("mainTabs").addEventListener("click", function(e){
+    var btn = e.target.closest(".tab");
+    if(!btn) return;
+    switchView(btn.getAttribute("data-tab"));
+  });
+  document.getElementById("backToList").addEventListener("click", function(){ switchView("list"); });
+  document.getElementById("exportOneBtn").addEventListener("click", function(){
+    if(this.disabled) return;
+    toast("レポートをMarkdownファイルとしてダウンロードしました（モック）");
+  });
+
+  document.getElementById("regenBtn").addEventListener("click", function(){
+    var date = document.getElementById("regenDate").value;
+    var btn = this;
+    btn.disabled = true; btn.textContent = "生成中…";
+    setTimeout(function(){
+      btn.disabled = false; btn.textContent = "再生成";
+      toast(date+" のレポートを再生成しました（モック）");
+    }, 1100);
+  });
+
+  document.getElementById("rangeBtn").addEventListener("click", function(){
+    var from = document.getElementById("rangeFrom").value;
+    var to = document.getElementById("rangeTo").value;
+    var days = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
+    if(days > 31 || days <= 0){
+      toast("期間の指定が不正です（最大31日以内で指定してください）");
+      return;
+    }
+    toast(from+" 〜 "+to+" のレポートをMarkdownファイルとしてダウンロードしました（モック）");
+  });
+
+  renderList();
+  renderHistory();
+  showDetail("2026-09-15");
+  switchView("list");
+})();
+</script>
+</body>
+</html>
