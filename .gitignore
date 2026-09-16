@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 環境依存の設定（実値はコミットしない）
+config/config.json
+
+# 実行時に生成されるレポート・実行履歴
+data/reports/
+data/run-history.json
+
+*.log
+.DS_Store
+Thumbs.db
