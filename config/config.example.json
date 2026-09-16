@@ -1,0 +1,16 @@
+{
+  "redmine": {
+    "url": "https://redmine.example.co.jp",
+    "apiKey": "REPLACE_WITH_YOUR_REDMINE_API_KEY"
+  },
+  "project": {
+    "identifier": "sample-project",
+    "includeSubprojects": true
+  },
+  "trackers": ["タスク", "バグ"],
+  "retentionDays": 90,
+  "export": {
+    "maxRangeDays": 31
+  },
+  "dataDir": "./data"
+}
