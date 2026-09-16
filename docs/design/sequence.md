@@ -11,22 +11,28 @@ sequenceDiagram
     participant H as run-history.json
 
     S->>B: 平日の決まった時刻に起動
-    B->>B: 対象日 = 起動日の前日(JST)を算出
+    B->>B: 対象日 = 起動日の直前の営業日(月〜金, JST)を算出
     B->>L: ロック取得
-    B->>R: 新規登録チケット取得(created_on=対象日)
+    B->>R: 新規登録チケット取得(一覧, created_on=対象日)
     R-->>B: チケット一覧
-    B->>R: 更新チケット取得(updated_on=対象日, include=journals)
-    R-->>B: チケット一覧+journals
-    B->>R: 作業時間取得(spent_on=対象日)
+    B->>R: 更新チケット取得(一覧, updated_on=対象日)
+    R-->>B: チケットID一覧
+    B->>R: 各チケットのjournals取得(単一チケット取得, include=journals)
+    R-->>B: journals
+    B->>R: 作業時間取得(time_entries, spent_on=対象日)
     R-->>B: time_entries一覧
-    B->>R: 対象トラッカーの全チケット取得(状態再構成用, include=journals)
-    R-->>B: チケット一覧+journals
-    B->>B: 対象日時点の状態を再構成し遅延チケットを判定・集計
+    B->>R: 遅延候補の絞り込み(一覧: 期日超過オープン / 対象日翌日以降に更新)
+    R-->>B: 候補チケット一覧
+    B->>R: 候補のjournals取得(単一チケット取得)
+    R-->>B: journals
+    B->>B: 対象日より後のjournalを巻き戻して対象日時点の状態を復元し遅延を判定・集計
     B->>F: レポートJSONを保存(status=success)
     B->>H: 実行履歴に成功を追記
     B->>L: ロック解放
     B->>B: 保持期間クリーンアップを実行（6.参照）
 ```
+※ 一覧取得はいずれも`limit=100`＋`offset`で`total_count`まで繰り返す（`detailed-design.md` 5.1）。
+※ journalsは一覧APIでは取得できないため、単一チケット取得を候補ぶん発行する（同 5.4・5.6）。
 
 ## 2. 自動レポート生成（Redmine接続失敗）
 ```mermaid
@@ -62,7 +68,7 @@ sequenceDiagram
     U->>W: 対象日を指定して「再生成」を実行
     W->>L: ロック取得（取得できなければ409 GENERATION_IN_PROGRESSを返す）
     W->>G: 生成処理を同期呼び出し
-    G->>R: チケット・作業時間・journals取得
+    G->>R: チケット・journals・作業時間を取得（1.と同じ手順）
     R-->>G: 応答
     G->>G: 集計・遅延判定
     G-->>W: レポートデータ
@@ -71,6 +77,7 @@ sequenceDiagram
     W->>L: ロック解放
     W-->>U: 完了（画面に反映）
 ```
+※ 同期処理のため、リクエストがIIS/iisnodeのタイムアウト（既定120秒）に収まることを導入時に確認する。
 
 ## 4. レポート閲覧・単日Markdownエクスポート
 ```mermaid
