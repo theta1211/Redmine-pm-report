@@ -170,3 +170,18 @@ Windows認証で識別された現在のログインユーザー名を返す（�
 ```json
 { "user": "DOMAIN\\sato" }
 ```
+
+## 8. GET /api/app-info
+画面ヘッダーの表示や入力チェックに使う設定値を返す。
+`config.json`のうち機微情報（Redmine URL・APIキー）は含めない。
+
+**レスポンス 200**
+```json
+{
+  "project": { "identifier": "sample-project", "includeSubprojects": true },
+  "trackers": ["タスク", "バグ"],
+  "retentionDays": 90,
+  "maxRangeDays": 31,
+  "today": "2026-09-16"
+}
+```

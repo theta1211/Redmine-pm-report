@@ -15,7 +15,8 @@ Redmineの指定プロジェクト（サブプロジェクト含む）の日々�
 
 ## 現在のステータス
 
-要件定義・詳細設計・画面モックが完了。実装はこれから。
+要件定義・詳細設計・画面モックに続き、shared / batch / webapp の実装が完了。
+Windows実機（IIS・タスクスケジューラ）での検証は未実施。
 
 ## リポジトリ構成
 
@@ -45,7 +46,7 @@ Loop engineeringと同様、DBは使用せずJSONファイルで状態・レポ�
 
 詳細は上記の各ドキュメントを参照。
 
-## セットアップ（実装後の想定）
+## セットアップ
 
 ```bash
 npm install
@@ -65,3 +66,46 @@ cp config/config.example.json config/config.json
 | `retentionDays` | レポート・実行履歴の保持日数（対象日基準、既定90） |
 | `export.maxRangeDays` | 期間指定エクスポートの上限日数（既定31） |
 | `dataDir` | レポート・実行履歴を置くディレクトリ（既定は`./data`） |
+
+## ローカルでの動作確認
+
+Windows認証の代わりに環境変数でユーザーを指定して動かせる（この環境変数はIIS配下では無視される）。
+
+```bash
+# Web閲覧アプリ
+PMREPORT_DEV_USER='DOMAIN\devuser' npm run start:webapp
+# → http://127.0.0.1:3000 （PORT/HOST環境変数で変更可）
+
+# レポート生成バッチを1回だけ手動実行（対象日は起動日の直前の営業日）
+npm run run:batch
+
+# 対象日を指定して実行（欠測日の補完用）
+node batch/dist/run.js --date=2026-09-11
+```
+
+## テスト
+
+```bash
+npm test        # 全workspace（shared/webapp/batch）のvitestを実行
+npm run typecheck
+```
+
+## Windows本番環境への導入（未検証）
+
+1. `npm install && npm run build`
+2. `config/config.json` を作成・編集
+3. IISサイト（`webapp/`を物理パスとする）を作成し、Windows認証を有効化・匿名認証を無効化する。
+   `webapp/web.config`のURL Rewriteルールにより、IISが認証したアカウント名がX-Remote-Userヘッダーへ
+   書き込まれる（クライアントが自称した同名ヘッダーは上書きされる）。Nodeプロセス自体は既定で
+   ループバック（127.0.0.1）のみ待ち受ける。
+4. Windowsタスクスケジューラに、**毎週月〜金**のトリガーで `node batch/dist/run.js` を実行する
+   タスクを登録する（対象日はバッチ側で「起動日の直前の営業日」として算出する）。
+
+## 未実装・今後の課題
+
+- Windows実機（IIS + iisnode・タスクスケジューラ）での動作は未検証。
+- Redmineのバージョンによっては、予定工数・進捗率の変更がjournalに記録されない場合がある
+  （その場合は遅延判定で現在値との差異が生じうる）。導入時に実環境での確認が必要
+  （`docs/design/detailed-design.md` 5.6参照）。
+- サブプロジェクトの集計は、親と子のプロジェクトIDを明示的に展開して問い合わせている。
+  実プロジェクト構成での件数一致は実環境で確認すること。
