@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redmine PM日次レポート</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark">PM</span>
+      <div>
+        <h1>Redmine PM日次レポート</h1>
+        <div class="sub" id="brandSub">&nbsp;</div>
+      </div>
+    </div>
+    <nav class="tabs" id="mainTabs">
+      <button class="tab" data-tab="list" aria-current="true">レポート一覧</button>
+      <button class="tab" data-tab="history" aria-current="false">実行履歴</button>
+    </nav>
+    <div class="whoami">ログイン中: <span class="mono" id="whoami">-</span></div>
+  </header>
+
+  <section class="view" id="view-list">
+    <div class="panel">
+      <div class="actions">
+        <div class="action-card">
+          <h3>手動再生成</h3>
+          <div class="field-row">
+            <label for="regenDate">対象日</label>
+            <input type="date" id="regenDate">
+            <button class="btn" id="regenBtn">再生成</button>
+          </div>
+          <div class="hint">欠測・生成失敗のリカバリ用。保持期間より前の日付も指定できます。</div>
+        </div>
+        <div class="action-card">
+          <h3>期間指定エクスポート</h3>
+          <div class="field-row">
+            <label for="rangeFrom">開始</label>
+            <input type="date" id="rangeFrom">
+            <label for="rangeTo">終了</label>
+            <input type="date" id="rangeTo">
+            <button class="btn" id="rangeBtn">エクスポート</button>
+          </div>
+          <div class="hint" id="rangeHint">まとめて1つのMarkdownファイルに出力します。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">レポート一覧（対象日の新しい順）</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>対象日</th><th>ステータス</th>
+              <th class="num">新規</th><th class="num">更新</th><th class="num">作業時間</th><th class="num">遅延</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="reportListBody"><tr><td colspan="7">読み込み中…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-detail" hidden>
+    <button class="back-link" id="backToList">← レポート一覧に戻る</button>
+    <div class="panel">
+      <div class="detail-head">
+        <div>
+          <h2 id="detailDateTitle">-</h2>
+          <div class="meta" id="detailMeta"></div>
+        </div>
+        <a class="btn ghost" id="exportOneBtn" href="#">Markdownエクスポート</a>
+      </div>
+
+      <div id="detailSuccess" hidden>
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="subhead">新規登録チケット</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>起票者</th><th>トラッカー</th><th>優先度</th><th>担当</th><th>期日</th></tr></thead>
+          <tbody id="newIssuesBody"></tbody></table>
+        </div>
+
+        <div class="subhead">更新チケット（ステータス・担当者の変更）</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>変更内容</th></tr></thead>
+          <tbody id="updatedIssuesBody"></tbody></table>
+        </div>
+
+        <div class="subhead">作業時間集計（入力者別）</div>
+        <div class="spent-bars" id="spentBars"></div>
+
+        <div class="subhead">遅延チケット（遅延時間の降順）</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>件名</th><th>担当</th><th>期日</th><th class="num">超過日数</th><th class="num">予定工数</th><th class="num">進捗</th><th class="num">遅延時間</th></tr></thead>
+          <tbody id="delayedBody"></tbody></table>
+        </div>
+
+        <div id="delayedUncalcWrap" hidden>
+          <div class="subhead">計算不可（工数未設定）</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>#</th><th>件名</th><th>担当</th><th>期日</th><th class="num">超過日数</th></tr></thead>
+            <tbody id="delayedUncalcBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div id="detailFailed" hidden>
+        <div class="error-block">レポートの生成に失敗しました：<span id="failMessage"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-history" hidden>
+    <div class="panel">
+      <div class="panel-title">バッチ実行履歴（実行日時の新しい順）</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>実行日時</th><th>対象日</th><th>トリガー</th><th>実行者</th><th>結果</th><th>エラー内容</th></tr></thead>
+          <tbody id="historyBody"><tr><td colspan="6">読み込み中…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

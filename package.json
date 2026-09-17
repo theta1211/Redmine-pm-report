@@ -1,0 +1,22 @@
+{
+  "name": "redmine-pm-report",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "shared",
+    "webapp",
+    "batch"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:webapp": "npm run dev --workspace webapp",
+    "start:webapp": "npm run start --workspace webapp",
+    "run:batch": "npm run start --workspace batch"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

@@ -5,9 +5,8 @@ dist/
 # 環境依存の設定（実値はコミットしない）
 config/config.json
 
-# 実行時に生成されるレポート・実行履歴
-data/reports/
-data/run-history.json
+# 実行時に生成されるレポート・実行履歴・ロックファイル
+data/
 
 *.log
 .DS_Store
